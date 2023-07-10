@@ -12,10 +12,29 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
+  //save URL data
+urlDatabase[shortURL] = longURL;
+//redirect to new page
+res.redirect('/urls/${shortURL}');
+});
 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
+});
+
+app.get("/u/:id", (req, res) => {
+  const shortURL = req.params.id; // Get the short URL from the request parameters
+  const longURL = urlDatabase[shortURL]; // Get the corresponding long URL from the urlDatabase
+
+  if (longURL) {
+    res.redirect(longURL); // Redirect to the long URL
+  } else {
+    res.sendStatus(404); // If the short URL is not found, send a 404 Not Found status
+  }
 });
 
 app.get("/urls/new", (req, res) => {
