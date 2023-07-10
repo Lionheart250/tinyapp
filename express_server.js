@@ -9,6 +9,10 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -22,6 +26,11 @@ app.get("/hello", (req, res) => {
 });
 
 //listen for GET requests to URLS and use res.render to make URLS index
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
+
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
