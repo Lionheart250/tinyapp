@@ -8,22 +8,43 @@ function generateRandomString() {}
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
+// Assuming you have an Express app instance called 'app'
+
+// Define an object to hold the URLs
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
-  const longURL = req.body.longURL;
-  //save URL data
-urlDatabase[shortURL] = longURL;
-//redirect to new page
-res.redirect('/urls/${shortURL}');
+
+// POST route for deleting a URL resource
+app.post('/urls/:id/delete', (req, res) => {
+  const id = req.params.id;
+
+  // Delete the URL resource using the 'delete' operator
+  delete urlDatabase[id];
+
+  // Redirect the client back to the urls_index page
+  res.redirect('/urls');
 });
+
+// Rest of your code...
+
+
 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
+});
+
+// POST route for deleting a URL resource
+app.post('/urls/:id/delete', (req, res) => {
+  const id = req.params.id;
+
+  // Delete the URL resource using the 'delete' operator
+  delete urls[id];
+
+  // Redirect the client back to the urls_index page
+  res.redirect('/urls');
 });
 
 app.get("/u/:id", (req, res) => {
