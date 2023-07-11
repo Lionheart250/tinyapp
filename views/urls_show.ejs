@@ -12,7 +12,8 @@
   </head>
 
   <body>
-    <%- include('partials/_header') %>
+    <% include('partials/_header') %>
+    
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -20,9 +21,49 @@
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
+        <form method="POST" action="/urls/<%= id %>/update">
+          <div class="form-group">
+            <label for="updatedLongURL">Updated Long URL:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="updatedLongURL"
+              name="updatedLongURL"
+              value="<%= longURL %>"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </form>
       </div>
       <div class="card-footer text-muted"></div>
     </div>
+    
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Short URL ID</th>
+          <th scope="col">Long URL</th>
+          <th scope="col">Edit</th>
+          <th scope="col">Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (let id in urls) { %>
+          <tr>
+            <td><%= id %></td>
+            <td><%= urls[id] %></td>
+            <td><a href="/urls/<%= id %>">Edit</a></td>
+            <td>
+              <form method="POST" action="/urls/<%= id %>/delete">
+                <button type="submit" class="btn btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+    
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

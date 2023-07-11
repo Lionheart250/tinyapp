@@ -1,4 +1,3 @@
-//removed duplicate code
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -7,8 +6,6 @@ function generateRandomString() {}
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
-
-// Assuming you have an Express app instance called 'app'
 
 // Define an object to hold the URLs
 const urlDatabase = {
@@ -27,21 +24,13 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-// Rest of your code...
-
-
-
-app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
-});
-
-// POST route for deleting a URL resource
-app.post('/urls/:id/delete', (req, res) => {
+// POST route for updating a URL resource
+app.post('/urls/:id/update', (req, res) => {
   const id = req.params.id;
+  const updatedLongURL = req.body.updatedLongURL;
 
-  // Delete the URL resource using the 'delete' operator
-  delete urls[id];
+  // Update the URL resource
+  urlDatabase[id] = updatedLongURL;
 
   // Redirect the client back to the urls_index page
   res.redirect('/urls');
@@ -89,6 +78,3 @@ app.get("/urls/:id", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
-
