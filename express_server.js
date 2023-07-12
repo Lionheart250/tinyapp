@@ -71,6 +71,35 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  const user = Object.values(users).find((user) => user.email === email);
+
+  if (!user) {
+    res.status(403).send("Invalid email");
+    return;
+  }
+
+  if (user.password !== password) {
+    res.status(403).send("Invalid password");
+    return;
+  }
+
+  res.cookie("user_id", user.id);
+
+  res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id");
+  res.redirect("/login");
+});
+
 app.get("/", (req, res) => {
   res.render("index");
 });
@@ -96,18 +125,6 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/register", (req, res) => {
   res.render("register");
-});
-
-app.post("/login", (req, res) => {
-  const username = req.body.username;
-
-  res.cookie("username", username);
-  res.redirect("/");
-});
-
-app.post("/logout", (req, res) => {
-  res.clearCookie("username");
-  res.redirect("/urls");
 });
 
 app.post("/urls/:id/delete", (req, res) => {
