@@ -4,6 +4,24 @@ const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser');
 const path = require('path');
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
+const urlDatabase = {
+  "b2xVn2": "http://www.lighthouselabs.ca",
+  "9sm5xK": "http://www.google.com"
+};
+
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -11,47 +29,92 @@ app.set("views", [
   path.join(__dirname, "views"),
   path.join(__dirname, "views", "partials")
 ]);
-app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+
+app.use((req, res, next) => {
+  res.locals.user = users[req.cookies.user_id];
+  next();
+});
+
+const generateRandomString = () => {
+  const length = 6;
+  return Math.random().toString(36).substring(2, 2 + length);
+};
+
+app.post("/register", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(400).send("Email and password fields are required");
+    return;
+  }
+
+  const existingUser = Object.values(users).find(
+    (user) => user.email === email
+  );
+  if (existingUser) {
+    res.status(400).send("Email already registered");
+    return;
+  }
+
+  const userID = generateRandomString();
+
+  const newUser = {
+    id: userID,
+    email,
+    password,
+  };
+
+  users[userID] = newUser;
+
+  res.cookie("user_id", userID);
+
   res.redirect("/urls");
 });
 
-// Define an object to hold the URLs
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
-
-// Middleware to pass the username to all views
-app.use((req, res, next) => {
-  res.locals.username = req.cookies["username"];
-  next();
+app.get("/", (req, res) => {
+  res.render("index");
 });
 
 app.get("/urls", (req, res) => {
   const templateVars = {
-    urls: urlDatabase
+    urls: urlDatabase,
+    user: res.locals.user
   };
   res.render("urls_index", templateVars);
+});
+
+app.get("/urls/new", (req, res) => {
+  const templateVars = {
+    user: res.locals.user
+  };
+  res.render("urls_new", templateVars);
+});
+
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
+app.get("/register", (req, res) => {
+  res.render("register");
 });
 
 app.post("/login", (req, res) => {
   const username = req.body.username;
 
-  // Perform login logic here
-
-  // Set the cookie
   res.cookie("username", username);
-  res.redirect("/"); // Redirect to the desired page after login
+  res.redirect("/");
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
 
-  // Delete the URL resource using the 'delete' operator
   delete urlDatabase[id];
 
-  // Redirect the client back to the urls_index page
   res.redirect('/urls');
 });
 
@@ -59,34 +122,20 @@ app.post('/urls/:id/update', (req, res) => {
   const id = req.params.id;
   const updatedLongURL = req.body.updatedLongURL;
 
-  // Update the URL resource
   urlDatabase[id] = updatedLongURL;
 
-  // Redirect the client back to the urls_index page
   res.redirect('/urls');
 });
 
-app.get("/", (req, res) => {
-  res.render("index");
-});
-
 app.get("/u/:id", (req, res) => {
-  const shortURL = req.params.id; // Get the short URL from the request parameters
-  const longURL = urlDatabase[shortURL]; // Get the corresponding long URL from the urlDatabase
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL];
 
   if (longURL) {
-    res.redirect(longURL); // Redirect to the long URL
+    res.redirect(longURL);
   } else {
-    res.sendStatus(404); // If the short URL is not found, send a 404 Not Found status
+    res.sendStatus(404);
   }
-});
-
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
 });
 
 app.get("/hello", (req, res) => {
