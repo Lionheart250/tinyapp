@@ -1,0 +1,85 @@
+/* Global Styles */
+body {
+  background-image: url('wallpaper.avif') !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  /* additional background properties */
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  color: #008080; /* Set text color to teal blue */
+}
+
+/* Header Styles */
+.navbar {
+  /* CSS properties */
+}
+
+.navbar-brand {
+  /* CSS properties */
+}
+
+.nav-link {
+  color: #00FF00; /* Set color to green */
+}
+
+/* Main Content Styles */
+.main-content {
+  /* CSS properties */
+}
+
+h1 {
+  color: #0000FF; /* Set color to blue */
+}
+
+/* Form Styles */
+.form-group {
+  /* CSS properties */
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+  /* CSS properties */
+}
+
+button {
+  /* CSS properties */
+}
+
+/* Footer Styles */
+.footer {
+  /* CSS properties */
+}
+
+/* Custom Styles from styles.css */
+@import url('styles.css');
+
+/* Logo Styles */
+.logo {
+  color: #FF0000; /* Set color to red */
+}
+
+/* Table Header Styles */
+.table th {
+  color: #008080; /* Set text color to teal blue */
+  font-size: 40px; /* Set font size to 40 pixels */
+}
+
+/* Table Cell Styles */
+.table td {
+  color: #008080; /* Set text color to teal blue */
+  font-size: 40px; /* Set font size to 40 pixels */
+}
+
+/* Login Page Styles */
+#login-page {
+  background-image: url('wallpaper.avif') !important;
+  /* additional background properties */
+}
+.index-background {
+  background-image: url('/views/Hello_there.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+

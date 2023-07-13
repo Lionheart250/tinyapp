@@ -21,7 +21,7 @@ const users = {
 
 const urlDatabase = {
   b6UTxQ: {
-    longURL: "https://www.tsn.ca",
+    longURL: "https://www.youtube.com/",
     userID: "userRandomID",
   },
   i3BoGr: {
@@ -43,6 +43,8 @@ app.set("views", [
 ]);
 
 // Middleware function to check if user is logged in
+// Add the static file middleware
+app.use(express.static(path.join(__dirname, 'views')));
 const requireLogin = (req, res, next) => {
   if (!req.session.user_id) {
     res.redirect("/login");
