@@ -2,6 +2,7 @@ const express = require("express");
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const bcrypt = require("bcryptjs");
+const cookieSession = require('cookie-session');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -18,19 +19,22 @@ const users = {
   },
 };
 
-
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
+    userID: "userRandomID",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "aJ48lW",
+    userID: "userRandomID",
   },
 };
 
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'], // Add your secret keys here
+}));
+
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", [
@@ -38,15 +42,9 @@ app.set("views", [
   path.join(__dirname, "views", "partials")
 ]);
 
-app.use((req, res, next) => {
-  res.locals.user = users[req.cookies.user_id];
-  next();
-});
-
 // Middleware function to check if user is logged in
 const requireLogin = (req, res, next) => {
-  const user = res.locals.user;
-  if (!user) {
+  if (!req.session.user_id) {
     res.redirect("/login");
   } else {
     next();
@@ -64,8 +62,6 @@ const urlsForUser = (id) => {
   return filteredURLs;
 };
 
-// Routes
-
 // Home page
 app.get("/", (req, res) => {
   res.render("index");
@@ -73,7 +69,7 @@ app.get("/", (req, res) => {
 
 // User-specific URLs
 app.get("/urls", requireLogin, (req, res) => {
-  const user = res.locals.user;
+  const user = users[req.session.user_id];
   const userURLs = urlsForUser(user.id);
   const templateVars = {
     urls: userURLs,
@@ -84,7 +80,7 @@ app.get("/urls", requireLogin, (req, res) => {
 
 // Create a new URL
 app.get("/urls/new", requireLogin, (req, res) => {
-  const user = res.locals.user;
+  const user = users[req.session.user_id];
   const templateVars = {
     user: user,
   };
@@ -93,7 +89,7 @@ app.get("/urls/new", requireLogin, (req, res) => {
 
 // Handle form submission to create a new URL
 app.post("/urls", requireLogin, (req, res) => {
-  const user = res.locals.user;
+  const user = users[req.session.user_id];
   if (!user) {
     res.status(403).send("You must be logged in to shorten URLs.");
     return;
@@ -135,7 +131,7 @@ app.post("/register", (req, res) => {
     res.status(400).send("Email already registered");
     return;
   }
-  //hash the password for encryption
+
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   const userID = generateRandomString();
@@ -143,12 +139,12 @@ app.post("/register", (req, res) => {
   const newUser = {
     id: userID,
     email,
-    password: hashedPassword, // this should save the hashed password
+    password: hashedPassword,
   };
 
   users[userID] = newUser;
 
-  res.cookie("user_id", userID);
+  req.session.user_id = userID;
 
   res.redirect("/urls");
 });
@@ -167,21 +163,21 @@ app.post("/login", (req, res) => {
     res.status(403).send("Invalid email");
     return;
   }
-//now we will be comparing the hashed password and password given
-const passwordMatch = bcrypt.compareSync(password, user.password);
+
+  const passwordMatch = bcrypt.compareSync(password, user.password);
   if (!passwordMatch) {
     res.status(403).send("Invalid password");
     return;
   }
 
-  res.cookie("user_id", user.id);
+  req.session.user_id = user.id;
 
   res.redirect("/urls");
 });
 
 // User logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
 
@@ -192,7 +188,7 @@ app.get("/urls.json", (req, res) => {
 
 // Update a URL
 app.post("/urls/:id", requireLogin, (req, res) => {
-  const user = res.locals.user;
+  const user = users[req.session.user_id];
   const shortURL = req.params.id;
   const url = urlDatabase[shortURL];
 
@@ -206,7 +202,6 @@ app.post("/urls/:id", requireLogin, (req, res) => {
     return;
   }
 
-  // Update the long URL
   const updatedLongURL = req.body.updatedLongURL;
   urlDatabase[shortURL].longURL = updatedLongURL;
 
@@ -215,7 +210,7 @@ app.post("/urls/:id", requireLogin, (req, res) => {
 
 // Delete a URL
 app.post("/urls/:id/delete", requireLogin, (req, res) => {
-  const user = res.locals.user;
+  const user = users[req.session.user_id];
   const shortURL = req.params.id;
   const url = urlDatabase[shortURL];
 
@@ -233,10 +228,9 @@ app.post("/urls/:id/delete", requireLogin, (req, res) => {
   res.redirect('/urls');
 });
 
-
 // View a URL
 app.get("/urls/:id", requireLogin, (req, res) => {
-  const user = res.locals.user;
+  const user = users[req.session.user_id];
   const shortURL = req.params.id;
   const url = urlDatabase[shortURL];
 
