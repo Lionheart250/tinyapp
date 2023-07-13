@@ -1,21 +1,23 @@
 const express = require("express");
-const app = express();
-const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const bcrypt = require("bcryptjs");
+const app = express();
+const PORT = 8080; // default port 8080
 
 const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10),
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: bcrypt.hashSync("dishwasher-funk", 10),
   },
 };
+
 
 const urlDatabase = {
   b6UTxQ: {
@@ -133,13 +135,15 @@ app.post("/register", (req, res) => {
     res.status(400).send("Email already registered");
     return;
   }
+  //hash the password for encryption
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
   const userID = generateRandomString();
 
   const newUser = {
     id: userID,
     email,
-    password,
+    password: hashedPassword, // this should save the hashed password
   };
 
   users[userID] = newUser;
@@ -163,8 +167,9 @@ app.post("/login", (req, res) => {
     res.status(403).send("Invalid email");
     return;
   }
-
-  if (user.password !== password) {
+//now we will be comparing the hashed password and password given
+const passwordMatch = bcrypt.compareSync(password, user.password);
+  if (!passwordMatch) {
     res.status(403).send("Invalid password");
     return;
   }
@@ -183,6 +188,29 @@ app.post("/logout", (req, res) => {
 // Get JSON representation of URL database
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+// Update a URL
+app.post("/urls/:id", requireLogin, (req, res) => {
+  const user = res.locals.user;
+  const shortURL = req.params.id;
+  const url = urlDatabase[shortURL];
+
+  if (!url) {
+    res.status(404).send("Short URL does not exist");
+    return;
+  }
+
+  if (url.userID !== user.id) {
+    res.status(403).send("You do not own this URL");
+    return;
+  }
+
+  // Update the long URL
+  const updatedLongURL = req.body.updatedLongURL;
+  urlDatabase[shortURL].longURL = updatedLongURL;
+
+  res.redirect('/urls');
 });
 
 // Delete a URL
@@ -204,6 +232,7 @@ app.post("/urls/:id/delete", requireLogin, (req, res) => {
   delete urlDatabase[shortURL];
   res.redirect('/urls');
 });
+
 
 // View a URL
 app.get("/urls/:id", requireLogin, (req, res) => {
